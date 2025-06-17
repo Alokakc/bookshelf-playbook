@@ -1,0 +1,95 @@
+---
+
+- name: Update apt cache
+  become: true
+  apt:
+    update_cache: yes
+
+- name: Install essential packages
+  become: true
+  apt:
+    name:
+      - git
+      - curl
+      - make
+      - build-essential
+      - libbz2-dev
+      - libreadline-dev
+      - libssl-dev
+      - libsqlite3-dev
+      - libffi-dev
+      - zlib1g-dev
+    state: present
+
+- name: Clone pyenv repository
+  git:
+    repo: 'https://github.com/pyenv/pyenv.git'
+    dest: "{{ pyenv_root }}"
+    update: no
+
+- name: Create pyenv plugins directory
+  file:
+    path: "{{ pyenv_root }}/plugins"
+    state: directory
+    mode: '0755'
+
+- name: Clone pyenv-virtualenv plugin
+  git:
+    repo: 'https://github.com/pyenv/pyenv-virtualenv.git'
+    dest: "{{ pyenv_root }}/plugins/pyenv-virtualenv"
+    update: no
+
+- name: Set up pyenv in .bashrc
+  lineinfile:
+    path: ~/.bashrc
+    line: '{{ item }}'
+    create: yes
+    insertafter: EOF
+  loop:
+    - 'export PATH="{{ pyenv_root }}/bin:$PATH"'
+    - 'eval "$(pyenv init -)"'
+    - 'eval "$(pyenv virtualenv-init -)"'
+
+- name: Install Python 3.5.10 using pyenv
+  shell: |
+    export PATH="{{ pyenv_root }}/bin:$PATH"
+    eval "$(pyenv init -)"
+    eval "$(pyenv virtualenv-init -)"
+    pyenv install -s {{ python_version }}
+    pyenv global {{ python_version }}
+  args:
+    executable: /bin/bash
+
+- name: Clone the project repository
+  git:
+    repo: "{{ repo_url }}"
+    dest: "{{ ansible_env.HOME }}/opt/project-bookshelf"
+    version: steps
+    force: yes
+
+- name: Ensure project path exists
+  stat:
+    path: "{{ project_path }}"
+  register: project_dir
+
+- name: Fail if project directory not found
+  fail:
+    msg: "The project path {{ project_path }} does not exist!"
+  when: not project_dir.stat.exists
+
+- name: Install Python requirements from requirements.txt
+  shell: |
+    export PATH="{{ pyenv_root }}/bin:$PATH"
+    eval "$(pyenv init -)"
+    eval "$(pyenv virtualenv-init -)"
+    pyenv global {{ python_version }}
+    cd {{ project_path }}
+    pip install --upgrade pip
+    pip install -r requirements.txt
+  args:
+    executable: /bin/bash
+
+- name: Include config tasks
+  import_tasks: update_config.yml
+
+

@@ -1,0 +1,12 @@
+---
+- name: Setup Python 3.5 with project dependencies
+  hosts: localhost
+  connection: local
+  gather_facts: true
+
+  roles:
+    - role: application-setup-dependency
+    - role: cloud_sql_proxy
+      become: yes
+    - role: run-app
+      become: yes

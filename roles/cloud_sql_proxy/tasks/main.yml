@@ -1,0 +1,42 @@
+---
+- name: Create directory for Cloud SQL proxy
+  file:
+    path: /usr/local/bin
+    state: directory
+    mode: '0755'
+
+- name: Download Cloud SQL Proxy v1
+  get_url:
+    url: https://storage.googleapis.com/cloudsql-proxy/v1.33.7/cloud_sql_proxy.linux.amd64
+    dest: /usr/local/bin/cloud-sql-proxy
+    mode: '0755'
+
+- name: Create socket directory
+  file:
+    path: /cloudsql
+    state: directory
+    mode: '0777'
+
+- name: Create cloud-sql-proxy systemd service
+  template:
+    src: cloud-sql-proxy.service.j2
+    dest: /etc/systemd/system/cloud-sql-proxy.service
+    mode: '0644'
+
+- name: Reload systemd
+  command: systemctl daemon-reload
+
+- name: Enable and start Cloud SQL Proxy
+  systemd:
+    name: cloud-sql-proxy
+    enabled: yes
+    state: started
+
+- name: Run Python script model_cloudsql.py
+  command: "python {{ ansible_env.HOME }}/opt/project-bookshelf/7-gce/bookshelf/model_cloudsql.py"
+  become: no
+  register: python_script_result
+
+- name: Display script output
+  debug:
+    var: python_script_result.stdout

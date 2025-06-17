@@ -1,0 +1,89 @@
+- name: Set PROJECT_ID
+  lineinfile:
+    path: "{{ project_path }}/config.py"
+    regexp: '^PROJECT_ID\s*='
+    line: 'PROJECT_ID = "{{ project_id }}"'
+    create: yes
+
+- name: Set CLOUDSQL_USER
+  lineinfile:
+    path: "{{ project_path }}/config.py"
+    regexp: '^CLOUDSQL_USER\s*='
+    line: 'CLOUDSQL_USER = "{{ cloudsql_user }}"'
+    create: yes
+
+- name: Set CLOUDSQL_PASSWORD
+  lineinfile:
+    path: "{{ project_path }}/config.py"
+    regexp: '^CLOUDSQL_PASSWORD\s*='
+    line: 'CLOUDSQL_PASSWORD = "{{ cloudsql_password }}"'
+    create: yes
+
+- name: Set CLOUDSQL_DATABASE
+  lineinfile:
+    path: "{{ project_path }}/config.py"
+    regexp: '^CLOUDSQL_DATABASE\s*='
+    line: 'CLOUDSQL_DATABASE = "{{ cloudsql_database }}"'
+    create: yes
+
+- name: Set CLOUDSQL_CONNECTION_NAME
+  lineinfile:
+    path: "{{ project_path }}/config.py"
+    regexp: '^CLOUDSQL_CONNECTION_NAME\s*='
+    line: 'CLOUDSQL_CONNECTION_NAME = "{{ cloudsql_connection_name }}"'
+    create: yes
+
+- name: Set CLOUD_STORAGE_BUCKET
+  lineinfile:
+    path: "{{ project_path }}/config.py"
+    regexp: '^CLOUD_STORAGE_BUCKET\s*='
+    line: 'CLOUD_STORAGE_BUCKET = "{{ cloud_storage_bucket }}"'
+    create: yes
+
+- name: Set GOOGLE_OAUTH2_CLIENT_ID
+  lineinfile:
+    path: "{{ project_path }}/config.py"
+    regexp: '^GOOGLE_OAUTH2_CLIENT_ID\s*='
+    line: 'GOOGLE_OAUTH2_CLIENT_ID = "{{ google_oauth2_client_id }}"'
+    create: yes
+
+- name: Set GOOGLE_OAUTH2_CLIENT_SECRET
+  lineinfile:
+    path: "{{ project_path }}/config.py"
+    regexp: '^GOOGLE_OAUTH2_CLIENT_SECRET\s*='
+    line: 'GOOGLE_OAUTH2_CLIENT_SECRET = "{{ google_oauth2_client_secret }}"'
+    create: yes
+
+- name: Set Data Backend to cloudsql
+  lineinfile:
+    path: "{{ project_path }}/config.py"
+    regexp: '^DATA_BACKEND\s*='
+    line: 'DATA_BACKEND = "cloudsql"'
+    create: yes
+
+- name: Remove GAE_INSTANCE check block
+  replace:
+    path: "{{ project_path }}/config.py"
+    regexp: 'if os\.environ\.get\(.*?\):\n(    .*\n)+else:\n(    .*\n)+'
+    replace: ''
+
+- name: Remove stray 'your-client-id' line
+  lineinfile:
+    path: "{{ project_path }}/config.py"
+    regexp: '^\s*''your-client-id''\s*$'
+    state: absent
+
+- name: Force SQLAlchemy to always use the live connection URI
+  lineinfile:
+    path: "{{ project_path }}/config.py"
+    regexp: '^SQLALCHEMY_DATABASE_URI\s*='
+    line: 'SQLALCHEMY_DATABASE_URI = LIVE_SQLALCHEMY_DATABASE_URI'
+    create: yes
+
+- name: Update main.py to bind to 0.0.0.0 instead of 127.0.0.1
+  lineinfile:
+    path: "{{ project_path }}/main.py"
+    regexp: '^(\s*)app\.run\(host=''127\.0\.0\.1'', port=8080, debug=True\)'
+    line: '    app.run(host=''0.0.0.0'', port=8080, debug=True)'
+    state: present
+

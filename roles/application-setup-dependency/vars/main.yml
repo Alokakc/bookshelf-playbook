@@ -1,0 +1,7 @@
+---
+# vars file for application-setup-dependency
+
+pyenv_root: "{{ ansible_env.HOME }}/.pyenv"
+python_version: "3.5.10"
+repo_url: "https://github.com/GoogleCloudPlatform/getting-started-python.git"
+project_path: "{{ ansible_env.HOME }}/opt/project-bookshelf/7-gce"
