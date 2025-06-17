@@ -32,6 +32,10 @@
     enabled: yes
     state: started
 
+- name: Wait for Cloud SQL Proxy to initialize socket
+  pause:
+    seconds: 5
+
 - name: Run Python script model_cloudsql.py
   shell: |
     export PATH="{{ pyenv_root }}/bin:$PATH"
