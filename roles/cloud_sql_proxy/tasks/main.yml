@@ -33,9 +33,17 @@
     state: started
 
 - name: Run Python script model_cloudsql.py
-  command: "python {{ ansible_env.HOME }}/opt/project-bookshelf/7-gce/bookshelf/model_cloudsql.py"
+  shell: |
+    export PATH="{{ pyenv_root }}/bin:$PATH"
+    eval "$(pyenv init -)"
+    eval "$(pyenv virtualenv-init -)"
+    pyenv global {{ python_version }}
+    python {{ ansible_env.HOME }}/opt/project-bookshelf/7-gce/bookshelf/model_cloudsql.py
+  args:
+    executable: /bin/bash
   become: no
   register: python_script_result
+
 
 - name: Display script output
   debug:
